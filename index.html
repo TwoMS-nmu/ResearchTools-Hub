@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科研工具聚合平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-gradient: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+            --card-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --button-gradient: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #4CAF50 100%);
+            --light-green: #e8f5e9;
+            --tag-color: #2e7d32;
+            --filter-bg: #f8f9fa;
+            --filter-border: #43cea2;
+            --filter-active: #11998e;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+        
+        /* 高斯模糊背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: var(--primary-gradient);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid;
+            border-image: var(--primary-gradient) 1;
+            display: inline-block;
+            color: #2c3e50;
+        }
+        
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #43cea2;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .search-icon:hover {
+            color: #2e7d32;
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+            width: 100%;
+            padding: 0 10px;
+        }
+        
+        .filter-btn {
+            padding: 12px 28px;
+            background: var(--filter-bg);
+            border: 2px solid var(--filter-border);
+            border-radius: 25px;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            flex-shrink: 0;
+            white-space: nowrap;
+            font-size: 1rem;
+        }
+        
+        .filter-btn:hover {
+            background: #e8f5e9;
+            border-color: var(--filter-active);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 206, 162, 0.2);
+        }
+        
+        .filter-btn.active {
+            background: var(--filter-active);
+            color: white;
+            border-color: var(--filter-active);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .tool-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            padding: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            background: var(--card-gradient);
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            flex-grow: 1;
+        }
+        
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .card-tag {
+            background: #e8f5e9;
+            color: var(--tag-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .card-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .visit-btn {
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--button-gradient);
+        }
+        
+        .visit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-category {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: white;
+            background: var(--dark-gradient);
+            border-radius: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .filter-container {
+                gap: 8px;
+            }
+            
+            .filter-btn {
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .filter-container {
+                gap: 6px;
+            }
+            
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>科研工具聚合平台</h1>
+            <p>专为生命科学研究者设计的工具集合网站</p>
+        </header>
+        
+        <div class="search-container">
+            <input type="text" class="search-box" placeholder="搜索工具或网站...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+        
+        <div class="filter-container">
+            <button class="filter-btn active" data-filter="all">全部</button>
+            <button class="filter-btn" data-filter="literature">文献检索</button>
+            <button class="filter-btn" data-filter="database">数据库</button>
+            <button class="filter-btn" data-filter="experiment">科研工具</button>
+            <button class="filter-btn" data-filter="other">其他</button>
+        </div>
+        
+        <h2 class="section-title">科研常用网站</h2>
+        <div class="tools-grid" id="websites-grid">
+            <!-- PubMed -->
+            <div class="tool-card website-card" data-category="literature">
+                <div class="card-header">
+                    <i class="fas fa-book card-icon"></i>
+                    <div class="card-title">PubMed</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">全球最大的生物医学文献数据库，免费提供超过3900万条生物医学领域的文献引文与摘要</p>
+                    <div class="card-tags">
+                        <span class="card-tag">文献检索</span>
+                        <span class="card-tag">生物医学</span>
+                        <span class="card-tag">资源联动</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">文献数据库</span>
+                    <button class="visit-btn" data-link="https://pubmed.ncbi.nlm.nih.gov/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+            
+            <!-- NCBI -->
+            <div class="tool-card website-card" data-category="database">
+                <div class="card-header">
+                    <i class="fas fa-dna card-icon"></i>
+                    <div class="card-title">NCBI</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">美国国家生物技术信息中心，提供基因、蛋白、基因组等多种生物信息数据库</p>
+                    <div class="card-tags">
+                        <span class="card-tag">生物信息</span>
+                        <span class="card-tag">基因</span>
+                        <span class="card-tag">数据库</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">生物信息平台</span>
+                    <button class="visit-btn" data-link="https://www.ncbi.nlm.nih.gov/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+            
+            <!-- UCSC -->
+            <div class="tool-card website-card" data-category="database">
+                <div class="card-header">
+                    <i class="fas fa-dna card-icon"></i>
+                    <div class="card-title">UCSC Genome Browser</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">加州大学圣克鲁兹基因组浏览器，提供基因组序列和注释数据的可视化浏览</p>
+                    <div class="card-tags">
+                        <span class="card-tag">基因组</span>
+                        <span class="card-tag">浏览器</span>
+                        <span class="card-tag">注释</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">基因组数据库</span>
+                    <button class="visit-btn" data-link="https://genome.ucsc.edu/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ensembl -->
+            <div class="tool-card website-card" data-category="database">
+                <div class="card-header">
+                    <i class="fas fa-dna card-icon"></i>
+                    <div class="card-title">Ensembl</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">脊椎动物基因组注释数据库，提供基因组序列、基因注释和比较基因组学数据</p>
+                    <div class="card-tags">
+                        <span class="card-tag">基因组</span>
+                        <span class="card-tag">注释</span>
+                        <span class="card-tag">比较基因组</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">基因组数据库</span>
+                    <button class="visit-btn" data-link="https://www.ensembl.org/index.html?redirect=no">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+            <!-- Primer3 -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-code-branch card-icon"></i>
+                    <div class="card-title">Primer3</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">广泛使用的PCR引物设计工具，可自动设计特异性引物并检查引物参数</p>
+                    <div class="card-tags">
+                        <span class="card-tag">引物设计</span>
+                        <span class="card-tag">PCR</span>
+                        <span class="card-tag">分子生物学</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">引物设计工具</span>
+                    <button class="visit-btn" data-link="https://ginkgo.zju.edu.cn/genome/tools/primer3/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Uniprot -->
+            <div class="tool-card website-card" data-category="database">
+                <div class="card-header">
+                    <i class="fas fa-atom card-icon"></i>
+                    <div class="card-title">UniProt</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">全面的蛋白质序列和功能信息数据库，包含Swiss-Prot和TrEMBL数据</p>
+                    <div class="card-tags">
+                        <span class="card-tag">蛋白质</span>
+                        <span class="card-tag">序列</span>
+                        <span class="card-tag">功能注释</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">蛋白质数据库</span>
+                    <button class="visit-btn" data-link="https://www.uniprot.org/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- OMIM -->
+            <div class="tool-card website-card" data-category="database">
+                <div class="card-header">
+                    <i class="fas fa-stethoscope card-icon"></i>
+                    <div class="card-title">OMIM</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">在线人类孟德尔遗传数据库，提供人类基因和遗传疾病的综合信息</p>
+                    <div class="card-tags">
+                        <span class="card-tag">遗传疾病</span>
+                        <span class="card-tag">基因数据库</span>
+                        <span class="card-tag">医学遗传</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">遗传数据库</span>
+                    <button class="visit-btn" data-link="https://www.omim.org/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Clinical Genome -->
+            <div class="tool-card website-card" data-category="database">
+                <div class="card-header">
+                    <i class="fas fa-hospital card-icon"></i>
+                    <div class="card-title">Clinical Genome</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">临床基因组资源数据库，提供基因与疾病关联的临床证据和指南</p>
+                    <div class="card-tags">
+                        <span class="card-tag">临床基因组</span>
+                        <span class="card-tag">疾病关联</span>
+                        <span class="card-tag">医学证据</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">临床数据库</span>
+                    <button class="visit-btn" data-link="https://clinicalgenome.org/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- ProteinPaint -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-palette card-icon"></i>
+                    <div class="card-title">ProteinPaint</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">基因组和蛋白质数据可视化工具，支持基因变异和结构域的可视化展示</p>
+                    <div class="card-tags">
+                        <span class="card-tag">数据可视化</span>
+                        <span class="card-tag">基因组</span>
+                        <span class="card-tag">蛋白质结构</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">可视化工具</span>
+                    <button class="visit-btn" data-link="https://proteinpaint.stjude.org/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Off-Spotter -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-bullseye card-icon"></i>
+                    <div class="card-title">Off-Spotter</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">CRISPR脱靶效应预测工具，帮助评估基因编辑实验的特异性和安全性</p>
+                    <div class="card-tags">
+                        <span class="card-tag">CRISPR</span>
+                        <span class="card-tag">脱靶预测</span>
+                        <span class="card-tag">基因编辑</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">基因编辑工具</span>
+                    <button class="visit-btn" data-link="https://cm.jefferson.edu/Off-Spotter/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- ESPript3 -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-align-left card-icon"></i>
+                    <div class="card-title">ESPript 3</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">多序列比对结果的美化工具，可生成高质量的序列比对图用于发表</p>
+                    <div class="card-tags">
+                        <span class="card-tag">序列比对</span>
+                        <span class="card-tag">可视化</span>
+                        <span class="card-tag">美化</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">序列分析工具</span>
+                    <button class="visit-btn" data-link="https://espript.ibcp.fr/ESPript/cgi-bin/ESPript.cgi">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Varsome -->
+            <div class="tool-card website-card" data-category="database">
+                <div class="card-header">
+                    <i class="fas fa-search-plus card-icon"></i>
+                    <div class="card-title">Varsome</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">人类基因组变异注释和临床解释平台，整合多个数据库的临床相关信息</p>
+                    <div class="card-tags">
+                        <span class="card-tag">变异注释</span>
+                        <span class="card-tag">临床解释</span>
+                        <span class="card-tag">人类基因组</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">变异分析平台</span>
+                    <button class="visit-btn" data-link="https://varsome.com/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- SpliceAI -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-code-branch card-icon"></i>
+                    <div class="card-title">SpliceAI</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">基于深度学习的剪接变异预测工具，识别影响RNA剪接的遗传变异</p>
+                    <div class="card-tags">
+                        <span class="card-tag">剪接预测</span>
+                        <span class="card-tag">深度学习</span>
+                        <span class="card-tag">变异分析</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">剪接分析工具</span>
+                    <button class="visit-btn" data-link="https://spliceailookup.broadinstitute.org/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- rna-splicer -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-rna card-icon"></i>
+                    <div class="card-title">RNA Splicer</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">RNA剪接位点预测和识别工具，帮助分析转录组数据中的剪接事件</p>
+                    <div class="card-tags">
+                        <span class="card-tag">RNA剪接</span>
+                        <span class="card-tag">位点预测</span>
+                        <span class="card-tag">转录组</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">RNA分析工具</span>
+                    <button class="visit-btn" data-link="https://rddc.tsinghua-gd.org/tool/rna-splicer">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Transvar -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-exchange-alt card-icon"></i>
+                    <div class="card-title">Transvar</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">基因组变异注释工具，支持多种变异坐标转换</p>
+                    <div class="card-tags">
+                        <span class="card-tag">变异注释</span>
+                        <span class="card-tag">坐标转换</span>
+                        <span class="card-tag">生物信息</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">变异注释工具</span>
+                    <button class="visit-btn" data-link="https://bioinformatics.mdanderson.org/transvar/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="section-title">科研小工具</h2>
+        <div class="tools-grid" id="tools-grid">
+            <!-- qPCR Easy -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-chart-line card-icon"></i>
+                    <div class="card-title">qPCR Easy</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">qPCR数据处理工具，提供相对定量计算和一键出图功能</p>
+                    <div class="card-tags">
+                        <span class="card-tag">qPCR</span>
+                        <span class="card-tag">数据分析</span>
+                        <span class="card-tag">实时荧光定量</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">数据分析工具</span>
+                    <button class="visit-btn" data-link="https://twoms-nmu.shinyapps.io/qPCR_Easy/">
+                        <i class="fas fa-external-link-alt"></i> 使用工具
+                    </button>
+                </div>
+            </div>
+
+            <!-- CASA OCR -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-eye card-icon"></i>
+                    <div class="card-title">CASA OCR</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">计算机辅助精子分析图像识别工具，自动识别和计数精子运动参数</p>
+                    <div class="card-tags">
+                        <span class="card-tag">图像识别</span>
+                        <span class="card-tag">精子分析</span>
+                        <span class="card-tag">自动化</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">图像分析工具</span>
+                    <button class="visit-btn" data-link="https://twoms-nmu.shinyapps.io/CASA_OCR/">
+                        <i class="fas fa-external-link-alt"></i> 使用工具
+                    </button>
+                </div>
+            </div>
+
+            <!-- NASC tool -->
+            <div class="tool-card website-card" data-category="experiment">
+                <div class="card-header">
+                    <i class="fas fa-exchange-alt card-icon"></i>
+                    <div class="card-title">NASC Tool</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">核酸序列转换工具，支持DNA/RNA序列的格式转换、互补链生成</p>
+                    <div class="card-tags">
+                        <span class="card-tag">序列转换</span>
+                        <span class="card-tag">核酸工具</span>
+                        <span class="card-tag">生物信息学</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">序列分析工具</span>
+                    <button class="visit-btn" data-link="https://twoms-nmu.github.io/NASC-tool/">
+                        <i class="fas fa-external-link-alt"></i> 使用工具
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="section-title">生物公司</h2>
+        <div class="tools-grid" id="ai-grid">
+            <!-- 生工官网 -->
+            <div class="tool-card website-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-flask card-icon"></i>
+                    <div class="card-title">生工生物</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">国内领先的生物技术公司，提供基因合成、蛋白表达、试剂耗材等全方位服务</p>
+                    <div class="card-tags">
+                        <span class="card-tag">生物试剂</span>
+                        <span class="card-tag">基因合成</span>
+                        <span class="card-tag">技术服务</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">生物公司</span>
+                    <button class="visit-btn" data-link="https://www.sangon.com/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- 诺唯赞 -->
+            <div class="tool-card website-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-vial card-icon"></i>
+                    <div class="card-title">诺唯赞</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">专注于酶和试剂研发的生物科技公司，提供分子生物学、细胞生物学相关产品</p>
+                    <div class="card-tags">
+                        <span class="card-tag">酶制剂</span>
+                        <span class="card-tag">试剂</span>
+                        <span class="card-tag">分子生物学</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">生物公司</span>
+                    <button class="visit-btn" data-link="https://www.vazyme.com/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- 赛默飞 -->
+            <div class="tool-card website-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-microscope card-icon"></i>
+                    <div class="card-title">赛默飞</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">全球领先的科学服务公司，提供仪器、试剂、耗材和软件等全方位解决方案</p>
+                    <div class="card-tags">
+                        <span class="card-tag">科学仪器</span>
+                        <span class="card-tag">试剂</span>
+                        <span class="card-tag">技术服务</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">科学服务</span>
+                    <button class="visit-btn" data-link="https://www.thermofisher.com/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Proteintech -->
+            <div class="tool-card website-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-antibody card-icon"></i>
+                    <div class="card-title">Proteintech</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">全球知名的抗体生产商，提供高质量的一抗、二抗及相关检测试剂</p>
+                    <div class="card-tags">
+                        <span class="card-tag">抗体</span>
+                        <span class="card-tag">蛋白检测</span>
+                        <span class="card-tag">免疫学</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">抗体公司</span>
+                    <button class="visit-btn" data-link="https://www.ptglab.com/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- 金斯瑞 -->
+            <div class="tool-card website-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-dna card-icon"></i>
+                    <div class="card-title">金斯瑞</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">全球领先的生命科学研发与生产服务提供商，专注于基因合成和生物试剂</p>
+                    <div class="card-tags">
+                        <span class="card-tag">基因合成</span>
+                        <span class="card-tag">蛋白表达</span>
+                        <span class="card-tag">生物试剂</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">生物技术</span>
+                    <button class="visit-btn" data-link="https://www.genscript.com.cn/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">AI工具</h2>
+        <div class="tools-grid" id="ai-grid">
+            <!-- ChatGPT -->
+            <div class="tool-card ai-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-robot card-icon"></i>
+                    <div class="card-title">ChatGPT</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">OpenAI开发的对话式AI助手，支持文本生成、代码编写、问题解答等多种功能</p>
+                    <div class="card-tags">
+                        <span class="card-tag">对话AI</span>
+                        <span class="card-tag">文本生成</span>
+                        <span class="card-tag">智能助手</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">AI助手</span>
+                    <button class="visit-btn" data-link="https://chat.openai.com/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- DeepSeek -->
+            <div class="tool-card ai-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-brain card-icon"></i>
+                    <div class="card-title">DeepSeek</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">深度求索开发的AI助手，支持长文本处理、代码编写和学术研究辅助</p>
+                    <div class="card-tags">
+                        <span class="card-tag">AI助手</span>
+                        <span class="card-tag">长文本</span>
+                        <span class="card-tag">学术研究</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">AI助手</span>
+                    <button class="visit-btn" data-link="https://www.deepseek.com/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- 豆包 -->
+            <div class="tool-card ai-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-comment-dots card-icon"></i>
+                    <div class="card-title">豆包</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">字节跳动开发的AI助手，支持对话交流、内容创作和问题解答</p>
+                    <div class="card-tags">
+                        <span class="card-tag">对话AI</span>
+                        <span class="card-tag">内容创作</span>
+                        <span class="card-tag">智能助手</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">AI助手</span>
+                    <button class="visit-btn" data-link="https://www.doubao.com/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kimi -->
+            <div class="tool-card ai-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-search card-icon"></i>
+                    <div class="card-title">Kimi</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">月之暗面开发的AI助手，专注于长文本处理和智能搜索</p>
+                    <div class="card-tags">
+                        <span class="card-tag">长文本</span>
+                        <span class="card-tag">智能搜索</span>
+                        <span class="card-tag">文档处理</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">AI助手</span>
+                    <button class="visit-btn" data-link="https://kimi.moonshot.cn/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grok -->
+            <div class="tool-card ai-card" data-category="other">
+                <div class="card-header">
+                    <i class="fas fa-bolt card-icon"></i>
+                    <div class="card-title">Grok</div>
+                </div>
+                <div class="card-body">
+                    <p class="card-description">xAI开发的AI助手，以其幽默风格和实时信息获取能力著称</p>
+                    <div class="card-tags">
+                        <span class="card-tag">实时信息</span>
+                        <span class="card-tag">幽默风格</span>
+                        <span class="card-tag">智能对话</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="card-category">AI助手</span>
+                    <button class="visit-btn" data-link="https://grok.x.ai/">
+                        <i class="fas fa-external-link-alt"></i> 访问网站
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 科研工具聚合平台 | 专为生命科学研究者设计 | 两个医学生</p>
+        </footer>
+    </div>
+
+    <script>
+        // 修复页面卡顿问题 - 优化事件处理
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBox = document.querySelector('.search-box');
+            const searchIcon = document.querySelector('.search-icon');
+            const toolCards = document.querySelectorAll('.tool-card');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            // 搜索功能
+            function performSearch() {
+                const searchTerm = searchBox.value.toLowerCase().trim();
+                
+                toolCards.forEach(card => {
+                    const title = card.querySelector('.card-title').textContent.toLowerCase();
+                    const description = card.querySelector('.card-description').textContent.toLowerCase();
+                    const tags = Array.from(card.querySelectorAll('.card-tag')).map(tag => tag.textContent.toLowerCase());
+                    
+                    const matches = title.includes(searchTerm) || 
+                                   description.includes(searchTerm) || 
+                                   tags.some(tag => tag.includes(searchTerm));
+                    
+                    card.style.display = matches ? 'block' : 'none';
+                });
+            }
+            
+            // 输入框搜索
+            searchBox.addEventListener('input', performSearch);
+            
+            // 搜索图标点击事件
+            searchIcon.addEventListener('click', performSearch);
+            
+            // 筛选功能
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 移除所有按钮的active类
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    // 为当前点击的按钮添加active类
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    
+                    toolCards.forEach(card => {
+                        if (filter === 'all') {
+                            card.style.display = 'block';
+                        } else {
+                            const category = card.getAttribute('data-category');
+                            card.style.display = category === filter ? 'block' : 'none';
+                        }
+                    });
+                });
+            });
+            
+            // 访问工具按钮点击事件 - 使用事件委托提高性能
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.visit-btn')) {
+                    const btn = e.target.closest('.visit-btn');
+                    const link = btn.getAttribute('data-link');
+                    if (link && link !== '#') {
+                        // 使用新标签页打开，避免页面跳转问题
+                        window.open(link, '_blank');
+                    } else {
+                        const card = btn.closest('.tool-card');
+                        const toolName = card.querySelector('.card-title').textContent;
+                        alert(`工具 "${toolName}" 的链接尚未设置，请在HTML中修改data-link属性`);
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                
+                // 卡片点击事件
+                if (e.target.closest('.tool-card') && !e.target.closest('.visit-btn')) {
+                    const card = e.target.closest('.tool-card');
+                    const btn = card.querySelector('.visit-btn');
+                    const link = btn.getAttribute('data-link');
+                    if (link && link !== '#') {
+                        window.open(link, '_blank');
+                    } else {
+                        const toolName = card.querySelector('.card-title').textContent;
+                        alert(`工具 "${toolName}" 的链接尚未设置，请在HTML中修改data-link属性`);
+                    }
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
